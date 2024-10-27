@@ -2,6 +2,12 @@
 
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
+export enum UserGender {
+  MALE = 'male',
+  FEMALE = 'female',
+  OTHER = 'other'
+}
+
 @Entity('users')
 export class Users {
   @PrimaryGeneratedColumn('uuid')
@@ -22,8 +28,12 @@ export class Users {
   @Column({ name: 'profile_picture_url', nullable: true }) // Profile picture URL, optional
   profilePictureUrl: string;
 
-  @Column({ type: 'enum', enum: ['male', 'female', 'other'], nullable: true }) // Gender enum, optional
-  gender: 'male' | 'female' | 'other';
+  @Column({
+    type: 'enum',
+    enum: UserGender,
+    nullable: true
+  })
+  gender: UserGender;
 
   @Column({ type: 'date', name: 'date_of_birth', nullable: true }) // Date of birth, optional
   dateOfBirth: Date;

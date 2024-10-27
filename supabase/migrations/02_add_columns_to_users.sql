@@ -1,9 +1,10 @@
--- 03_add_columns_to_users.sql
+-- First, create an ENUM type for gender
+CREATE TYPE user_gender AS ENUM ('male', 'female', 'other');
 
--- Add new columns to the users table
+-- Then modify the users table
 ALTER TABLE users 
 ADD COLUMN full_name TEXT,
-ADD COLUMN phone_number TEXT UNIQUE,         -- Ensuring phone number is unique
-ADD COLUMN profile_picture_url TEXT,         -- URL to the profile picture stored on Cloudinary
-ADD COLUMN gender TEXT CHECK (gender IN ('Male', 'Female', 'Other')),  -- Enforcing gender options
+ADD COLUMN phone_number TEXT UNIQUE,
+ADD COLUMN profile_picture_url TEXT,
+ADD COLUMN gender user_gender,  -- Use the ENUM type instead of TEXT with CHECK
 ADD COLUMN date_of_birth DATE;

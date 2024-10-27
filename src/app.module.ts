@@ -12,11 +12,16 @@ import { UsersService } from './users/users.service';
 import { UsersModule } from './users/users.module';
 import { ProfileModule } from './profile/profile.module';
 import { UsersController } from './users/users.controller';
+import { MulterModule } from '@nestjs/platform-express';
+import { CloudinaryService } from './cloudinary/cloudinary.service';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,  // Makes config available across all modules
+    }),
+    MulterModule.register({
+      dest: './uploads', // Temporary storage before uploading to Cloudinary
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -32,7 +37,7 @@ import { UsersController } from './users/users.controller';
     UsersModule,
     ProfileModule,
   ],
-  providers: [AppService, SupabaseService, ProfileService, UsersService], // Include AppService here
+  providers: [AppService, SupabaseService, ProfileService, UsersService, CloudinaryService], // Include AppService here
   controllers: [AppController, ProfileController, UsersController], // Include AppController here
 })
 export class AppModule {}
