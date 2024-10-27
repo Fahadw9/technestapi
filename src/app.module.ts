@@ -2,15 +2,16 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { SupabaseService } from '../supabase/supabase.service';
-import { AuthService } from './auth/auth.service';
+import { AppService } from './app.service'; // Import AppService
+import { AppController } from './app.controller'; // Import AppController
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from './users/users.entity';
 import { ProfileController } from './profile/profile.controller';
 import { ProfileService } from './profile/profile.service';
 import { UsersService } from './users/users.service';
-import { UsersController } from './users/users.controller';
 import { UsersModule } from './users/users.module';
 import { ProfileModule } from './profile/profile.module';
+import { UsersController } from './users/users.controller';
 
 @Module({
   imports: [
@@ -31,7 +32,7 @@ import { ProfileModule } from './profile/profile.module';
     UsersModule,
     ProfileModule,
   ],
-  providers: [SupabaseService, ProfileService, UsersService],
-  controllers: [ProfileController, UsersController],
+  providers: [AppService, SupabaseService, ProfileService, UsersService], // Include AppService here
+  controllers: [AppController, ProfileController, UsersController], // Include AppController here
 })
 export class AppModule {}
