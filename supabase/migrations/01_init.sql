@@ -28,17 +28,3 @@ CREATE TABLE messages (
     content TEXT NOT NULL,                 -- Message content
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
--- Optional: Create indexes for faster querying
-
--- Index on listings user_id for faster lookup of user’s listings
-CREATE INDEX idx_listings_user_id ON listings(user_id);
-
--- Index on messages sender_id for faster lookup of sent messages
-CREATE INDEX idx_messages_sender_id ON messages(sender_id);
-
--- Index on messages receiver_id for faster lookup of received messages
-CREATE INDEX idx_messages_receiver_id ON messages(receiver_id);
-
--- Index on messages listing_id for faster lookup of messages related to a listing
-CREATE INDEX idx_messages_listing_id ON messages(listing_id);
