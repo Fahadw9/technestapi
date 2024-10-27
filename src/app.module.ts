@@ -5,6 +5,12 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { AuthService } from './auth/auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from './users/users.entity';
+import { ProfileController } from './profile/profile.controller';
+import { ProfileService } from './profile/profile.service';
+import { UsersService } from './users/users.service';
+import { UsersController } from './users/users.controller';
+import { UsersModule } from './users/users.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -22,7 +28,10 @@ import { Users } from './users/users.entity';
       synchronize: true, // Note: Set to false in production
     }),
     AuthModule,
+    UsersModule,
+    ProfileModule,
   ],
-  providers: [SupabaseService],
+  providers: [SupabaseService, ProfileService, UsersService],
+  controllers: [ProfileController, UsersController],
 })
 export class AppModule {}

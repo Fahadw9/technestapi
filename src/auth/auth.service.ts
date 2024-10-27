@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from 'src/users/users.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt'; // For hashing passwords
+import { JwtService } from '@nestjs/jwt'; // Import JwtService
 
 @Injectable()
 export class AuthService {
@@ -11,6 +12,7 @@ export class AuthService {
     private readonly supabaseService: SupabaseService,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
+    private readonly jwtService: JwtService, // Inject JwtService
   ) {}
 
   async register(email: string, password: string) {
@@ -42,18 +44,27 @@ export class AuthService {
       email,
       password,
     });
-    const user = data.user;
 
     if (error) {
-      throw new Error(error.message);
+      throw new Error(error.message); // Throw error if authentication fails
     }
 
-    const dbuser = await this.usersRepository.findOne({ where: { email } });
-    if (!dbuser || !(await bcrypt.compare(password, dbuser.passwordHash))) {
-      throw new Error('Invalid credentials');
-    }
-    return { message: 'User logged in', email };  }
+    const user = data.user;
 
+    // Check if user exists
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Create a payload for the JWT token
+    const payload = { email: user.email, sub: user.id };
+
+    // Sign and return the JWT token
+    const accessToken = this.jwtService.sign(payload);
+
+    return { message: 'User logged in', accessToken }; // Return the token instead of just email
+  }
+  
   async logout() {
     const { error } = await this.supabaseService.client.auth.signOut();
 
