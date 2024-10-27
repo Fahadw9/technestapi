@@ -13,16 +13,16 @@ export class AuthService {
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
     private readonly jwtService: JwtService, // Inject JwtService
-  ) {}
+  ) { }
 
   async register(email: string, password: string) {
     const { data, error } = await this.supabaseService.client.auth.signUp({
       email,
       password,
     });
-    
+
     if (error) {
-      throw new Error(error.message);
+      return { message: error.message, email };
     }
 
     const user = data.user; // This will contain the UUID from Supabase
@@ -35,25 +35,35 @@ export class AuthService {
       passwordHash,
     });
 
-    await this.usersRepository.save(dbUser);
-    return { message: 'User registered', email };
+    try {
+      await this.usersRepository.save(dbUser);
+      return { message: 'User registered', email };
+    } catch (dbError) {
+      // Handle specific errors, such as duplicate ID error
+      if (dbError.code === '23505') { // PostgreSQL error code for unique violation
+        return { message: 'A user with this ID already exists.', email };
+      }
+      // Handle other unexpected errors
+      return { message: dbError, email };
+    }
   }
 
   async login(email: string, password: string) {
     const { data, error } = await this.supabaseService.client.auth.signInWithPassword({
-      email,
-      password,
+        email,
+        password,
     });
 
+    // Check for authentication errors
     if (error) {
-      throw new Error(error.message); // Throw error if authentication fails
+        return { message: error.message }; // Return the error message as a response
     }
 
     const user = data.user;
 
     // Check if user exists
     if (!user) {
-      throw new Error('User not found');
+        return { message: 'User not found.' }; // Return a message if user does not exist
     }
 
     // Create a payload for the JWT token
@@ -63,13 +73,13 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload);
 
     return { message: 'User logged in', accessToken }; // Return the token instead of just email
-  }
-  
+}
+
   async logout() {
     const { error } = await this.supabaseService.client.auth.signOut();
 
     if (error) {
-      throw new Error(error.message);
+      return { message: error.message };
     }
 
     return true;
