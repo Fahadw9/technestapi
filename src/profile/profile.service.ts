@@ -26,34 +26,51 @@ export class ProfileService {
   }
 
   async updateUserProfile(userId: string, updateProfileDto: UpdateProfileDto, profilePicture: Multer.File) {
-    let profilePictureUrl = null;
+    // Fetch the current profile to retain the existing values
+    const currentUserProfile = await this.getUserProfile(userId);
 
-    // Upload to Cloudinary if a file is provided
-    if (profilePicture) {
-      const uploadResult: string = await this.cloudinaryService.uploadImage(profilePicture);
-      profilePictureUrl = uploadResult; // Assuming the upload result is a URL string
+    // Prepare the update object
+    const updateData: { [key: string]: any } = {};
+
+    // Only include fields that are present in updateProfileDto and not null or undefined
+    if (updateProfileDto.full_name !== undefined) {
+        updateData.full_name = updateProfileDto.full_name;
+    }
+    if (updateProfileDto.phone_number !== undefined) {
+        updateData.phone_number = updateProfileDto.phone_number;
+    }
+    if (updateProfileDto.gender !== undefined) {
+        updateData.gender = updateProfileDto.gender.toLowerCase() as UserGender;
+    }
+    if (updateProfileDto.date_of_birth !== undefined) {
+        updateData.date_of_birth = updateProfileDto.date_of_birth;
     }
 
-    if (updateProfileDto.gender) {
-        updateProfileDto.gender = updateProfileDto.gender.toLowerCase() as UserGender;
+    // If a profile picture is provided, upload it to Cloudinary and update the URL
+    if (profilePicture) {
+        const profilePictureUrl = await this.cloudinaryService.uploadImage(profilePicture);
+        updateData.profile_picture_url = profilePictureUrl; // Set the new profile picture URL
+    } else {
+        // If no profile picture is provided, keep the current profile picture URL
+        updateData.profile_picture_url = currentUserProfile.profile_picture_url;
+    }
+
+    // Check if there's anything to update
+    if (Object.keys(updateData).length === 0) {
+        return { message: 'No fields to update.' };
     }
 
     // Update user profile in Supabase
     const { error } = await this.supabaseService.client
-      .from('users')
-      .update({
-        full_name: updateProfileDto.full_name,
-        phone_number: updateProfileDto.phone_number,
-        profile_picture_url: profilePictureUrl,
-        gender: updateProfileDto.gender,
-        date_of_birth: updateProfileDto.date_of_birth
-      })
-      .eq('id', userId);
+        .from('users')
+        .update(updateData)
+        .eq('id', userId);
 
     if (error) {
-      throw new Error(`Error updating profile: ${error.message}`);
+        throw new Error(`Error updating profile: ${error.message}`);
     }
 
     return { message: 'Profile updated successfully.' };
-  }
+}
+
 }
